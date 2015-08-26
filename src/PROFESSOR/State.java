@@ -2,7 +2,7 @@ package PROFESSOR;
 
 import java.util.List;
 
-import robot.AsvConfig;
+import problem.ArmConfig;
 
 /**
  * A simple interface representing a state within a state space. Any state
@@ -31,5 +31,5 @@ public interface State {
 	 */
 	public double getCost(State successor);
 
-	public List<AsvConfig> getState();
+	public List<ArmConfig> getState();
 }
