@@ -9,6 +9,7 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.awt.geom.*;
 
 
 public class a1 {
@@ -53,6 +54,8 @@ public class a1 {
 			
 			currentState = test.getInitialState();
 			
+			//Search
+			aStarSearch(test);
 			
 			//Finish
 			createEmptySolution(test, args[1]);
@@ -76,8 +79,29 @@ public class a1 {
 	
 	public static void aStarSearch(ProblemSpec problem){
 		
+		// Change to whichever Heuristic
+		Heuristic h = new ZeroHeuristic();
 		
+		problem.getPath();
+		List<ArmConfig> finalPath = new ArrayList<ArmConfig>();
+		problem.setPath(finalPath);
 		
+	}
+	
+	// Check if next move has collided with objects in problem spec
+	public static boolean hitObject(ProblemSpec problem, ArmConfig nextMove){
+		
+		List<Obstacle> objectList = problem.getObstacles();
+		List<Line2D> lineList = nextMove.getLinks();
+		for (Obstacle o : objectList) {
+			Rectangle2D rect = o.getRect();
+			for (Line2D l : lineList) {
+				if (l.contains(rect)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	
