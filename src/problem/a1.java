@@ -17,12 +17,15 @@ import java.lang.Double;
 public class a1 {
 	
 	public static void main(String args[]) throws IOException {
-		/*
+		
+		//Tests
+		testFunc.collisionTest();
+		
 		if (args.length != 2) {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		*/
+		
 		ProblemSpec test = new ProblemSpec();
 		
 		
@@ -49,9 +52,6 @@ public class a1 {
 		
 		//System.err.println(test.solutionLoaded());
 		
-		
-		//testFunc.collisionTest();
-
 		
 		try {
 			//Start
@@ -90,9 +90,27 @@ public class a1 {
 		// Change to whichever Heuristic
 		Heuristic h = new ZeroHeuristic();
 		
-		problem.getPath();
+		List<ArmConfig> closedSet = new ArrayList<ArmConfig>();
+		List<ArmConfig> openSet = new ArrayList<ArmConfig>();
+		List<ArmConfig> currentPath = new ArrayList<ArmConfig>();
 		List<ArmConfig> finalPath = new ArrayList<ArmConfig>();
-		problem.setPath(finalPath);
+		ArmConfig currentArm = problem.getInitialState();
+		Double currentCost = new Double("0");
+		Double inf = Double.POSITIVE_INFINITY;
+		boolean found = false;
+		
+		openSet.add(problem.getInitialState());
+		
+		while(!found) {
+			if (currentArm.equals(problem.getGoalState())) {
+				// change answer to finalPath
+				found = true;
+				problem.setPath(finalPath);
+			} else {
+				//Search
+				
+			}
+		}
 		
 	}
 	
@@ -112,47 +130,36 @@ public class a1 {
 		return false;
 	}
 	
-	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect)
-	    {
-		 
+	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect) {
 		 	
 		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
 		 	Point2D.Double p2 = new Point2D.Double(line.getX2(), line.getY2());
 
-	        return LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
+		 	return LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY())) ||
 	               (rect.contains(p1) && rect.contains(p2));
-	    }
+	 }
 
-	    private static boolean LineIntersectsLine(Point2D.Double l1p1, Point2D.Double l1p2, Point2D.Double l2p1, Point2D.Double l2p2)
-	    {
-	    	
-	    	
-	        double q = (l1p1.getY() - l2p1.getY()) * (l2p2.getX() - l2p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l2p2.getY() - l2p1.getY());
-	        double d = (l1p2.getX() - l1p1.getX()) * (l2p2.getY() - l2p1.getY()) - (l1p2.getY() - l1p1.getY()) * (l2p2.getX() - l2p1.getX());
+	 private static boolean LineIntersectsLine(Point2D.Double l1p1, Point2D.Double l1p2, Point2D.Double l2p1, Point2D.Double l2p2){
+	 
+		 double q = (l1p1.getY() - l2p1.getY()) * (l2p2.getX() - l2p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l2p2.getY() - l2p1.getY());
+		 double d = (l1p2.getX() - l1p1.getX()) * (l2p2.getY() - l2p1.getY()) - (l1p2.getY() - l1p1.getY()) * (l2p2.getX() - l2p1.getX());
+		
+		 if( d == 0 ){
+			 return false;
+		 }
 
-	        if( d == 0 )
-	        {
-	            return false;
-	        }
+		 double r = q / d;
 
-	        double r = q / d;
+		 q = (l1p1.getY() - l2p1.getY()) * (l1p2.getX() - l1p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l1p2.getY() - l1p1.getY());
+		 double s = q / d; 
 
-	        q = (l1p1.getY() - l2p1.getY()) * (l1p2.getX() - l1p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l1p2.getY() - l1p1.getY());
-	        double s = q / d; 
-
-	        if( r < 0 || r > 1 || s < 0 || s > 1 )
-	        {
-	            return false;
-	        }
-
-	        return true;
-	    }
-	    
-	    
-	
-	
+		 if( r < 0 || r > 1 || s < 0 || s > 1 ){
+			 return false;
+		 }
+		 return true;
+	 }
 	
 }

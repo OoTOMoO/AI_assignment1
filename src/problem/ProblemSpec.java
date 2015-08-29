@@ -66,8 +66,11 @@ public class ProblemSpec {
 			if (initialState.getJointCount() != goalState.getJointCount()) {
 				throw new IOException(
 						"Mismatch between initial and goal joint count.");
-			} //// get init and goal state above with all the joints count
+			} 
+			//// get init and goal state above with all the joints count
 
+			jointCount = initialState.getJointCount();
+			
 			line = input.readLine();
 			lineNo++;
 			s = new Scanner(line);
