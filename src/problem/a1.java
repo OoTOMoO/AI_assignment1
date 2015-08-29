@@ -112,6 +112,12 @@ public class a1 {
 			}
 		}
 		
+		//While openset is not empty
+		//	current = node in openset that has the lowest total score
+		//	if current = goal
+		
+		
+		
 	}
 	
 	// Check if next move has collided with objects in problem spec
@@ -130,19 +136,42 @@ public class a1 {
 		return false;
 	}
 	
+	 public static boolean outofbounds(Line2D line) {
+		 	// Doesn't check for if Line is completely out of bounds
+		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
+		 	Point2D.Double p2 = new Point2D.Double(line.getX2(), line.getY2());
+		 	Double zero = new Double("0");
+		 	Double one = new Double("1");
+		 	Rectangle2D rect = new Rectangle2D.Double(zero, zero, one, one);
+		 	
+		 	if (!(rect.contains(p1) && rect.contains(p2))) {
+		 		return true;
+		 	}
+
+		 	return LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY()))
+	               ;
+	 }
+	 
 	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect) {
 		 	
 		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
 		 	Point2D.Double p2 = new Point2D.Double(line.getX2(), line.getY2());
 
-		 	return LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
+		 	return (rect.contains(p1) || rect.contains(p2));
+		 	/*||
+		 			LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY())) ||
-	               (rect.contains(p1) && rect.contains(p2));
+	               (rect.contains(p1) && rect.contains(p2)); */
 	 }
+	 
+	 
 
-	 private static boolean LineIntersectsLine(Point2D.Double l1p1, Point2D.Double l1p2, Point2D.Double l2p1, Point2D.Double l2p2){
+	 private static boolean LineIntersectsLine(Point2D l1p1, Point2D l1p2, Point2D l2p1, Point2D l2p2){
 	 
 		 double q = (l1p1.getY() - l2p1.getY()) * (l2p2.getX() - l2p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l2p2.getY() - l2p1.getY());
 		 double d = (l1p2.getX() - l1p1.getX()) * (l2p2.getY() - l2p1.getY()) - (l1p2.getY() - l1p1.getY()) * (l2p2.getX() - l2p1.getX());
@@ -161,5 +190,44 @@ public class a1 {
 		 }
 		 return true;
 	 }
+	 
+	public boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
+		
+		List<Line2D> lines = move.getLinks();
+		
+		if (current.getBase().distance(move.getBase()) > new Double("0.001")) {
+			return false;
+		} // Need to check for angle
+		if (hitObject(problem, move)) {
+			return false;
+		}
+		// check arms overlap
+		int i = 0;
+		for (Line2D line : lines) {
+			if (outofbounds(line)) {
+				return false;
+			}
+			for (int z = i ; z < lines.size() ; z++) {
+				if ( LineIntersectsLine(lines.get(z).getP1(), lines.get(z).getP2(),line.getP1(),line.getP2())) {
+					return false;
+				}
+			}
+			i++;
+		}
+		// Check for -150 and 150
 	
+		return true;
+	}
+	
+	/*
+	public boolean outOfbounds(ArmConfig x) {
+		List<Line2D> lines = x.getLinks();
+		for (Line2D l : lines) {
+			l.
+		}
+		List<Point2D> points = line
+		
+	} */	
+	
+
 }
