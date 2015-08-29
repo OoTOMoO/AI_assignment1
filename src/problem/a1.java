@@ -10,17 +10,19 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.awt.geom.*;
+import java.awt.Point;
+import java.lang.Double;
 
 
 public class a1 {
 	
 	public static void main(String args[]) throws IOException {
-		
+		/*
 		if (args.length != 2) {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		
+		*/
 		ProblemSpec test = new ProblemSpec();
 		
 		
@@ -47,6 +49,10 @@ public class a1 {
 		
 		//System.err.println(test.solutionLoaded());
 		
+		
+		//testFunc.collisionTest();
+
+		
 		try {
 			//Start
 			System.err.println("Load problem file");
@@ -62,6 +68,8 @@ public class a1 {
 		} catch (IOException e) {
 			System.err.println(e);
 		}
+		
+		
 
 
 	}
@@ -96,13 +104,54 @@ public class a1 {
 		for (Obstacle o : objectList) {
 			Rectangle2D rect = o.getRect();
 			for (Line2D l : lineList) {
-				if (l.contains(rect)) {
+				if (LineIntersectsRect(l, rect)) {
 					return true;
 				}
 			}
 		}
 		return false;
 	}
+	
+	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect)
+	    {
+		 
+		 	
+		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
+		 	Point2D.Double p2 = new Point2D.Double(line.getX2(), line.getY2());
+
+	        return LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
+	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY())) ||
+	               (rect.contains(p1) && rect.contains(p2));
+	    }
+
+	    private static boolean LineIntersectsLine(Point2D.Double l1p1, Point2D.Double l1p2, Point2D.Double l2p1, Point2D.Double l2p2)
+	    {
+	    	
+	    	
+	        double q = (l1p1.getY() - l2p1.getY()) * (l2p2.getX() - l2p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l2p2.getY() - l2p1.getY());
+	        double d = (l1p2.getX() - l1p1.getX()) * (l2p2.getY() - l2p1.getY()) - (l1p2.getY() - l1p1.getY()) * (l2p2.getX() - l2p1.getX());
+
+	        if( d == 0 )
+	        {
+	            return false;
+	        }
+
+	        double r = q / d;
+
+	        q = (l1p1.getY() - l2p1.getY()) * (l1p2.getX() - l1p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l1p2.getY() - l1p1.getY());
+	        double s = q / d; 
+
+	        if( r < 0 || r > 1 || s < 0 || s > 1 )
+	        {
+	            return false;
+	        }
+
+	        return true;
+	    }
+	    
+	    
 	
 	
 	
