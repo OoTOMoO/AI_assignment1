@@ -53,4 +53,15 @@ public abstract class testFunc {
 
 	}
 	
+	public static void randomTest(ProblemSpec test) {
+		
+		List<ArmConfig> list = a1.randomSample(test, 100);
+	 	
+		for (ArmConfig a : list) {
+	 		System.out.println(a.toString());
+	 	}
+
+	}
+	
+	
 }

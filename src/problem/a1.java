@@ -10,6 +10,9 @@ import java.lang.Double;
 
 public class a1 {
 	
+	static double radianLimit = new Double("2.61799388"); 
+	static double maxAngleChange = new Double("0.00174532925");
+	
 	public static void main(String args[]) throws IOException {
 
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
@@ -31,6 +34,7 @@ public class a1 {
 			//System.err.println("Load problem file");
 			test.loadProblem(args[0]);
 			
+			//testFunc.randomTest(test);
 			//testFunc.moveTest(test);
 			
 			//Check if direct path is available
@@ -80,17 +84,17 @@ public class a1 {
 		// X change by cos
 		// Y change by sin
 		path.add(current);
-		System.out.println(current.toString());
+		//System.out.println(current.toString());
 		while(true){
 			nextPoint = new Point2D.Double(current.getBase().getX() + (Math.cos(r)*max), current.getBase().getY() + (Math.sin(r)*max)); 
 			current = new ArmConfig(nextPoint, current.getJointAngles());
 			path.add(current);
-			System.out.println(current.toString());
+			//System.out.println(current.toString());
 			if (current.getBase().distance(end.getBase()) <= max) {
 				nextPoint = end.getBase(); 
 				current = new ArmConfig(nextPoint, current.getJointAngles());
 				path.add(current);
-				System.out.println(current.toString());
+				//System.out.println(current.toString());
 				break;
 			}
 		}
@@ -106,15 +110,21 @@ public class a1 {
 		for (int i = 0; i < x; i++) {
 			answer.add(randomArm(problem));
 		}
-		
 		return answer;
-		
 		
 	}
 	
 	public static ArmConfig randomArm(ProblemSpec problem) {
-		ArmConfig answer = problem.getGoalState();
-		double radianLimit = new Double("2.61799388");
+		
+		
+		Point2D base = new Point2D.Double(Math.random(), Math.random());
+		List<Double> links = new ArrayList<Double>();
+		
+		for (int i = 0; i < problem.getJointCount(); i++) {
+			links.add((Math.random() * 2 * radianLimit) - radianLimit);
+		}
+		
+		ArmConfig answer = new ArmConfig(base, links);
 		return answer;
 	}
 	
@@ -251,16 +261,38 @@ public class a1 {
 	 
 	public static boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
 		
+		List<Double> clinks = current.getJointAngles();
+		List<Double> mlinks = move.getJointAngles();
+		List<Line2D> links = move.getLinks();
+		Double angleDiff;
+		int y = 0;
 		
 		if (current.getBase().distance(move.getBase()) > new Double("0.001")) {
 			return false;
-		} // Need to check for angle
+		}
+		
+		// angle check
+		for (int i = 0; i < problem.getJointCount(); i++) {
+			angleDiff = clinks.get(i) - mlinks.get(i);
+			if (angleDiff > maxAngleChange || angleDiff < (maxAngleChange * -1)) {
+				return false;
+			}
+		}
+		
 		if (hitObject(problem, move) || outofbounds(move)) {
 			return false;
 		}
 		// check arms overlap
+		/*for (Line2D l : links) {
+			for (int z = 1 ; )
+		}*/
 
 		// Check for -150 and 150
+		for (Double d : move.getJointAngles()) {
+			if (d > radianLimit || d < (radianLimit * -1)) {
+				return false;
+			}
+		}
 	
 		return true;
 	}
