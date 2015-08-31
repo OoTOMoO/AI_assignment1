@@ -1,25 +1,23 @@
 package problem;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 import java.awt.geom.*;
-import java.awt.Point;
 import java.lang.Double;
 
 
 public class a1 {
 	
 	public static void main(String args[]) throws IOException {
-		
+
+		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
+			  
+			  
 		//Tests
-		testFunc.collisionTest();
+		//testFunc.collisionTest();
+		//testFunc.angleTest();
 		
 		if (args.length != 2) {
 			System.err.println("Invalid command line arguments\n");
@@ -28,47 +26,33 @@ public class a1 {
 		
 		ProblemSpec test = new ProblemSpec();
 		
-		
-		/*
-
-		The number of joints 
-			private int jointCount;
-		
-		The initial configuration 
-			private ArmConfig initialState;
-		
-		The goal configuration 
-			private ArmConfig goalState;
-		
-		The obstacles
-			private List<Obstacle> obstacles;
-
-		The path taken in the solution 
-			private List<ArmConfig> path;
-		
-		*/
-
-		ArmConfig currentState;
-		
-		//System.err.println(test.solutionLoaded());
-		
-		
 		try {
 			//Start
-			System.err.println("Load problem file");
+			//System.err.println("Load problem file");
 			test.loadProblem(args[0]);
 			
-			currentState = test.getInitialState();
+			//testFunc.moveTest(test);
+			
+			//Check if direct path is available
+			test = armMove(test.getInitialState(), test.getGoalState(), test);
+			// else Sample
+			
 			
 			//Search
-			aStarSearch(test);
+			//aStarSearch(test);
 			
-			//Finish
-			createEmptySolution(test, args[1]);
+			test.saveSolution(args[1]);
 		} catch (IOException e) {
 			System.err.println(e);
 		}
 		
+		// Finish
+		try {
+			//test.saveSolution(args[1]);
+			//createEmptySolution(test, args[1]);
+		} catch (Exception e) {
+			System.err.println(e);
+		}
 		
 
 
@@ -84,6 +68,63 @@ public class a1 {
 		output.close();
 		
 	}
+	
+	public static ProblemSpec armMove(ArmConfig start, ArmConfig end, ProblemSpec problem) {
+		ArmConfig current = start;
+		Point2D nextPoint;
+		ArmConfig nextArm;
+		Double max = new Double("0.001");
+		List<ArmConfig> path = problem.getPath();
+		if (path == null) path = new ArrayList<ArmConfig>();
+		double r = GetRadianOfLineBetweenTwoPoints(start.getBase(), end.getBase());
+		// X change by cos
+		// Y change by sin
+		path.add(current);
+		System.out.println(current.toString());
+		while(true){
+			nextPoint = new Point2D.Double(current.getBase().getX() + (Math.cos(r)*max), current.getBase().getY() + (Math.sin(r)*max)); 
+			current = new ArmConfig(nextPoint, current.getJointAngles());
+			path.add(current);
+			System.out.println(current.toString());
+			if (current.getBase().distance(end.getBase()) <= max) {
+				nextPoint = end.getBase(); 
+				current = new ArmConfig(nextPoint, current.getJointAngles());
+				path.add(current);
+				System.out.println(current.toString());
+				break;
+			}
+		}
+		problem.setPath(path);
+		return problem;
+		
+	}
+	
+	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
+		
+		List<ArmConfig> answer = new ArrayList<ArmConfig>();
+		
+		for (int i = 0; i < x; i++) {
+			answer.add(randomArm(problem));
+		}
+		
+		return answer;
+		
+		
+	}
+	
+	public static ArmConfig randomArm(ProblemSpec problem) {
+		ArmConfig answer = problem.getGoalState();
+		double radianLimit = new Double("2.61799388");
+		return answer;
+	}
+	
+	
+	public static double GetRadianOfLineBetweenTwoPoints(Point2D p1, Point2D p2) {
+		double xDiff = p2.getX() - p1.getX();
+		double yDiff = p2.getY() - p1.getY();
+		//return Math.toDegrees(Math.atan2(yDiff, xDiff));
+		return Math.atan2(yDiff, xDiff);
+	} 
 	
 	public static void aStarSearch(ProblemSpec problem){
 		
@@ -135,6 +176,23 @@ public class a1 {
 		}
 		return false;
 	}
+	
+	 public static boolean outofbounds(ArmConfig move) {
+		 List<Line2D> lines = move.getLinks();
+			int i = 0;
+			for (Line2D line : lines) {
+				if (outofbounds(line)) {
+					return true;
+				}
+				for (int z = i ; z < lines.size() ; z++) {
+					if ( LineIntersectsLine(lines.get(z).getP1(), lines.get(z).getP2(),line.getP1(),line.getP2())) {
+						return true;
+					}
+				}
+				i++;
+			}
+		return false;
+	 }
 	
 	 public static boolean outofbounds(Line2D line) {
 		 	// Doesn't check for if Line is completely out of bounds
@@ -191,33 +249,22 @@ public class a1 {
 		 return true;
 	 }
 	 
-	public boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
+	public static boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
 		
-		List<Line2D> lines = move.getLinks();
 		
 		if (current.getBase().distance(move.getBase()) > new Double("0.001")) {
 			return false;
 		} // Need to check for angle
-		if (hitObject(problem, move)) {
+		if (hitObject(problem, move) || outofbounds(move)) {
 			return false;
 		}
 		// check arms overlap
-		int i = 0;
-		for (Line2D line : lines) {
-			if (outofbounds(line)) {
-				return false;
-			}
-			for (int z = i ; z < lines.size() ; z++) {
-				if ( LineIntersectsLine(lines.get(z).getP1(), lines.get(z).getP2(),line.getP1(),line.getP2())) {
-					return false;
-				}
-			}
-			i++;
-		}
+
 		// Check for -150 and 150
 	
 		return true;
 	}
+	
 	
 	/*
 	public boolean outOfbounds(ArmConfig x) {

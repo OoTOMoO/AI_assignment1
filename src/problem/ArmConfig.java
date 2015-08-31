@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 /** 
  * Represents a configuration of the arm, i.e. base x-y coordinates and joint
- * angles. This class doesn't do any validity checking. 
+ * angles. This class doesn't do any validity checking.
  */
 public class ArmConfig {
 	
@@ -20,7 +20,6 @@ public class ArmConfig {
 	private Point2D base;
 	/** Joint angles in radians */
 	private List<Double> jointAngles;
-	private int number;
 	/** Links as Line2D */
 	private List<Line2D> links;
 	
@@ -78,6 +77,7 @@ public class ArmConfig {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(base.getX());
+		sb.append(" ");
 		sb.append(base.getY());
 		for (Double angle : jointAngles) {
 			sb.append(" ");
@@ -207,5 +207,4 @@ public class ArmConfig {
 			y1 = y2;
 		}
 	}
-	
 }

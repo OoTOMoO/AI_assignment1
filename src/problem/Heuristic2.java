@@ -14,7 +14,7 @@ package problem;
  * @param <S>
  *            the type of state used.
  */
-public class Heuristic1 implements Heuristic {
+public class Heuristic2 implements Heuristic {
 	/**
 	 * Returns an estimate (zero) of the cost to reach the goal from the given
 	 * state.
@@ -32,14 +32,14 @@ public class Heuristic1 implements Heuristic {
 	}
 	
 	public double estimate(ArmConfig move, ArmConfig end) {
-		return (move.maxDistance(end))/move.getJointCount();
+		return move.maxDistance(end);
 	}
 	
 	public double estimate(ArmConfig move, ProblemSpec problem) {
 		if (a1.hitObject(problem, move) || a1.outofbounds(move)) {
 			return inf;
 		}
-		return (move.maxDistance(problem.getGoalState()))/move.getJointCount();
+		return move.maxDistance(problem.getGoalState());
 	}
 	
 	

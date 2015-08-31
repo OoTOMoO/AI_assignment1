@@ -28,4 +28,29 @@ public abstract class testFunc {
 		//System.out.println(a1.outofbounds(testL1));
 	}
 	
+	public static void angleTest() {
+		
+	 	Point2D.Double tp1 = new Point2D.Double(new Double("0"), new Double("0"));
+	 	Point2D.Double tp2 = new Point2D.Double(new Double("0"), new Double("1"));
+	 	
+	 	System.out.println(a1.GetRadianOfLineBetweenTwoPoints(tp1, tp2));
+	 	System.out.println(Math.toDegrees(a1.GetRadianOfLineBetweenTwoPoints(tp1, tp2))+" in degrees");
+
+	}
+	
+	public static void moveTest(ProblemSpec test) {
+		
+		ProblemSpec problem = test;
+	 	
+		ArmConfig start = problem.getInitialState();
+	 	ArmConfig end = problem.getGoalState();
+		ProblemSpec answer = a1.armMove(start, end, problem);
+	 	
+	 	List<ArmConfig> path = answer.getPath();
+	 	for (ArmConfig a : path) {
+	 		System.out.println(a.toString());
+	 	}
+
+	}
+	
 }

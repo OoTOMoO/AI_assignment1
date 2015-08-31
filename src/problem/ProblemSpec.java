@@ -25,7 +25,6 @@ public class ProblemSpec {
 	/** True iff a solution is currently loaded */
 	private boolean solutionLoaded = false;
 
-	
 	/** The number of joints */
 	private int jointCount;
 	/** The initial configuration */
@@ -36,7 +35,7 @@ public class ProblemSpec {
 	private List<Obstacle> obstacles;
 
 	/** The path taken in the solution */
-	private List<ArmConfig> path;
+	private List<ArmConfig> path = new ArrayList<ArmConfig>();
 
 	/**
 	 * Loads a problem from a problem text file.
@@ -66,15 +65,13 @@ public class ProblemSpec {
 			if (initialState.getJointCount() != goalState.getJointCount()) {
 				throw new IOException(
 						"Mismatch between initial and goal joint count.");
-			} 
-			//// get init and goal state above with all the joints count
-
+			}
 			jointCount = initialState.getJointCount();
-			
+
 			line = input.readLine();
 			lineNo++;
 			s = new Scanner(line);
-			int numObstacles = s.nextInt(); //get number of obstacles
+			int numObstacles = s.nextInt();
 			s.close();
 
 			obstacles = new ArrayList<Obstacle>();
@@ -162,7 +159,7 @@ public class ProblemSpec {
 		}
 		String ls = System.getProperty("line.separator");
 		FileWriter output = new FileWriter(filename);
-		output.write(String.format("%d %f%s", path.size() - 1, ls));
+		output.write(String.format("%d %s", path.size() - 1, ls));
 		for (ArmConfig cfg : path) {
 			output.write(cfg + ls);
 		}
