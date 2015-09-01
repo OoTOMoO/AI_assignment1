@@ -31,5 +31,5 @@ public interface State {
 	 */
 	public double getCost(State successor);
 
-	public List<ArmConfig> getState();
+	public List<State> getState();
 }
