@@ -32,14 +32,14 @@ public class Heuristic1 implements Heuristic {
 	}
 	
 	public double estimate(ArmConfig move, ArmConfig end) {
-		return (move.maxDistance(end))/move.getJointCount();
+		return (move.totalDistance(end))/move.getJointCount();
 	}
 	
 	public double estimate(ArmConfig move, ProblemSpec problem) {
 		if (a1.hitObject(problem, move) || a1.outofbounds(move)) {
 			return inf;
 		}
-		return (move.maxDistance(problem.getGoalState()))/move.getJointCount();
+		return (move.totalDistance(problem.getGoalState()))/move.getJointCount();
 	}
 	
 	
