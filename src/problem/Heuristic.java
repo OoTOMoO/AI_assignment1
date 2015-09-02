@@ -10,4 +10,6 @@ public interface Heuristic {
 	 * @return an estimate of the cost to the goal.
 	 */
 	public double estimate(ArmConfig start, ArmConfig end);
+	
+	public double estimate(ArmConfig start, ProblemSpec p);
 }

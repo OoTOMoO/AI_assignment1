@@ -27,4 +27,9 @@ public class ZeroHeuristic implements Heuristic {
 	public double estimate(ArmConfig start, ArmConfig end) {
 		return 0;
 	}
+	
+	@Override
+	public double estimate(ArmConfig start, ProblemSpec p) {
+		return 0;
+	}
 }

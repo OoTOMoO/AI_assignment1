@@ -9,7 +9,7 @@ public class Node {
 	
 	private Node parent = null;
 	private ArmConfig arm;
-	private List<Node> pathTo;
+	private List<Node> pathTo = new ArrayList<Node>();
 //	boolean closed = false;
 	private double gcost;
 	private double hcost;
@@ -17,7 +17,7 @@ public class Node {
 	public Node(ArmConfig arm, double cost, ProblemSpec p, Heuristic h) {
 		this.arm = arm;
 		this.gcost = Double.POSITIVE_INFINITY;
-		this.hcost = h.estimate(arm, p.getGoalState());
+		this.hcost = h.estimate(arm, p);
 	}
 	
 	public double getG() {
@@ -71,7 +71,7 @@ public class Node {
 	*/
 	
 	public boolean equals(Node n) {
-		if (this.arm == n.arm) {
+		if (this.arm.equals(n.arm)) {
 			return true;
 		}
 		return false;

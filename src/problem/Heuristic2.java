@@ -31,6 +31,7 @@ public class Heuristic2 implements Heuristic {
 		return move.maxDistance(end);
 	}
 	
+	@Override
 	public double estimate(ArmConfig move, ProblemSpec problem) {
 		if (a1.hitObject(problem, move) || a1.outofbounds(move)) {
 			return inf;

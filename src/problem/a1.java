@@ -18,7 +18,9 @@ public class a1 {
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		
 		List<Integer> t1 = new ArrayList<Integer>();
-		
+		List<ArmConfig> bpath = new ArrayList<ArmConfig>();
+		ArmConfig current;
+		ArmConfig currentDestination;
 			  
 		//Tests
 		//testFunc.collisionTest();
@@ -41,10 +43,16 @@ public class a1 {
 			
 			//Check if direct path is available
 			if (checkStraightPath(test.getInitialState(), test.getGoalState(), test)) {
+				System.err.println("here");
 				test = armMove(test.getInitialState(), test.getGoalState(), test);
 			} else {
-				
-				
+				bpath = aStarSearch(test);
+				for (int i = bpath.size()-1; i > 0; i--) {
+					current = bpath.get(i);
+					currentDestination = bpath.get(i-1);
+					System.err.println("Go " + current.toString() + " to " + currentDestination.toString());
+					test = armMove(current, currentDestination, test);
+				}
 			}
 			// else Sample
 			
@@ -70,7 +78,7 @@ public class a1 {
 	}
 	
 	// A* Search algorithm
-	public static void aStarSearch(ProblemSpec problem){
+	public static List<ArmConfig> aStarSearch(ProblemSpec problem){
 		
 		
 		// Change to whichever Heuristic
@@ -87,6 +95,7 @@ public class a1 {
 		open.add(problem.getInitialState());
 		ArmConfig current;
 		double cost;
+		List<ArmConfig> path = new ArrayList<ArmConfig>();
 		
 		while (!open.isEmpty()) {
 			// Get lowest g cost in open list
@@ -99,19 +108,34 @@ public class a1 {
 			// Take lowest out of open list and add to close
 			close.add(current);
 			open.remove(open.indexOf(current));
-			for (Node neighbours : nodes.getNode(current).getPath()) {
-				// Change cost
-				cost = (maxMoves(neighbours.getArm(), current) + nodes.getNode(current).getG());
-				if (cost > nodes.getNode(neighbours).getG()) {
-					nodes.getNode(neighbours).setG(cost);
-					nodes.getNode(neighbours).setParent(nodes.getNode(current));
+			if (current.equals(problem.getGoalState())) {
+				path.add(current);
+				while(!current.equals(problem.getInitialState())) {
+					current = nodes.getNode(current).getParent().getArm();
+					path.add(current);
 				}
-				if (!open.contains(neighbours.getArm()) && !close.contains(neighbours.getArm())) {
-					open.add(neighbours.getArm());
-					
+				break;
+			} else {
+				for (Node neighbours : nodes.getNode(current).getPath()) {
+					// Change cost
+					cost = (maxMoves(neighbours.getArm(), current) + nodes.getNode(current).getG());
+					if (cost > nodes.getNode(neighbours).getG() && !close.contains(neighbours)) {
+						nodes.getNode(neighbours).setG(cost);
+						//nodes.getNode(neighbours).setParent(nodes.getNode(current));
+					}
+					if (!open.contains(neighbours.getArm()) && !close.contains(neighbours.getArm())) {
+						open.add(neighbours.getArm());
+						nodes.getNode(neighbours).setParent(nodes.getNode(current));
+					}
 				}
 			}
 		}
+		
+		if (path.isEmpty()) System.err.println("Can't find path");
+		
+		for (ArmConfig a : path) System.err.println(a.toString());
+		
+		return path;
 	
 		//nodes.getNode(current)
 		
@@ -147,6 +171,7 @@ public class a1 {
 	// Check if path between start ArmConfig and end ArmConfig within the selected ProblemSpec
 	// 	Return true if straight path is available
 	// 	Return false if can't go straight
+	// NEEDS FIX (CHECK IF WORKS)
 	public static boolean checkStraightPath(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		
 		int links = problem.getJointCount();
@@ -323,7 +348,7 @@ public class a1 {
 		List<Line2D> lineList = nextMove.getLinks();
 		for (Line2D l : lineList) {
 			if (hitObject(problem, l)) {
-				System.err.println("Hit obj");
+				//System.err.println("Hit obj");
 				return true;
 			}
 		}
@@ -375,7 +400,7 @@ public class a1 {
 		 	Rectangle2D rect = new Rectangle2D.Double(zero, zero, one, one);
 		 	
 		 	if (!(rect.contains(p1) && rect.contains(p2))) {
-		 		System.err.println("Out of bounds: not in bounds completely");
+		 		//System.err.println("Out of bounds: not in bounds completely");
 		 		return true;
 		 	}
 
@@ -395,13 +420,13 @@ public class a1 {
 		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
 		 	Point2D.Double p2 = new Point2D.Double(line.getX2(), line.getY2());
 
-		 	return (rect.contains(p1) || rect.contains(p2));
-		 	/*||
+		 	return (rect.contains(p1) || rect.contains(p2))
+		 	||
 		 			LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY())) ||
-	               (rect.contains(p1) && rect.contains(p2)); */
+	               (rect.contains(p1) && rect.contains(p2)); 
 	 }
 	 
 	 
