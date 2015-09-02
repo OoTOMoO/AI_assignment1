@@ -24,7 +24,7 @@ public class ZeroHeuristic implements Heuristic {
 	 * @return always estimates the cost as zero.
 	 */
 	@Override
-	public double estimate(State s) {
+	public double estimate(ArmConfig start, ArmConfig end) {
 		return 0;
 	}
 }

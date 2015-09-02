@@ -16,7 +16,9 @@ public class a1 {
 	public static void main(String args[]) throws IOException {
 
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
-			  
+		
+		List<Integer> t1 = new ArrayList<Integer>();
+		
 			  
 		//Tests
 		//testFunc.collisionTest();
@@ -28,7 +30,6 @@ public class a1 {
 		}
 		
 		ProblemSpec test = new ProblemSpec();
-		List<ArmConfig> samples;
 		
 		try {
 			//Start
@@ -42,7 +43,8 @@ public class a1 {
 			if (checkStraightPath(test.getInitialState(), test.getGoalState(), test)) {
 				test = armMove(test.getInitialState(), test.getGoalState(), test);
 			} else {
-				samples = randomSample(test, 1000);
+				
+				
 			}
 			// else Sample
 			
@@ -67,7 +69,84 @@ public class a1 {
 
 	}
 	
-	// return false if can't go straight
+	// A* Search algorithm
+	public static void aStarSearch(ProblemSpec problem){
+		
+		
+		// Change to whichever Heuristic
+		Heuristic h = new Heuristic2();
+		
+		// Sample nodes
+		List<ArmConfig> samples = randomSample(problem, 1000);
+		
+		MapOfNodes nodes = new MapOfNodes(sampleNodes(samples, problem, h));
+		
+		// Init List and add start node to open list
+		List<ArmConfig> open = new ArrayList<ArmConfig>();
+		List<ArmConfig> close = new ArrayList<ArmConfig>();
+		open.add(problem.getInitialState());
+		ArmConfig current;
+		double cost;
+		
+		while (!open.isEmpty()) {
+			// Get lowest g cost in open list
+			current = open.get(0);
+			for (int i = 1 ; i < open.size() ; i++) {
+				if (nodes.getNode(current).getT() > nodes.getNode(open.get(i)).getT()) {
+					current = open.get(i);
+				}
+			}
+			// Take lowest out of open list and add to close
+			close.add(current);
+			open.remove(open.indexOf(current));
+			for (Node neighbours : nodes.getNode(current).getPath()) {
+				// Change cost
+				cost = (maxMoves(neighbours.getArm(), current) + nodes.getNode(current).getG());
+				if (cost > nodes.getNode(neighbours).getG()) {
+					nodes.getNode(neighbours).setG(cost);
+					nodes.getNode(neighbours).setParent(nodes.getNode(current));
+				}
+				if (!open.contains(neighbours.getArm()) && !close.contains(neighbours.getArm())) {
+					open.add(neighbours.getArm());
+					
+				}
+			}
+		}
+	
+		//nodes.getNode(current)
+		
+	}
+	
+	public static List<Node> sampleNodes(List<ArmConfig> sample, ProblemSpec p, Heuristic h) {
+		ArmConfig start = p.getInitialState();
+		ArmConfig end = p.getGoalState();
+		List<Node> list = new ArrayList<Node>();
+		Node n;
+		n = new Node(start, 0, p, h);
+		n.setG(0);
+		list.add(n);
+		list.add(new Node(end, 0, p, h));
+		for (ArmConfig arm : sample) {
+			n = new Node(arm, 0, p, h);
+			list.add(n);
+		}
+		for (int x = 0 ; x < list.size() ; x++) {
+			int y = x;
+			while (y<list.size()) { 
+				if (checkStraightPath(list.get(x).getArm(), list.get(y).getArm(), p)) {
+					list.get(x).addPath(list.get(y));
+					list.get(y).addPath(list.get(x));
+				}
+				y++;
+			}
+		}
+		return list;
+	}
+	
+	
+	// Check if path between start ArmConfig and end ArmConfig within the selected ProblemSpec
+	// 	Return true if straight path is available
+	// 	Return false if can't go straight
 	public static boolean checkStraightPath(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		
 		int links = problem.getJointCount();
@@ -85,7 +164,8 @@ public class a1 {
 		return true;
 	}
 	
-	// return false if any collision
+	// Check if an individual line collides with any obstacle or is out of bounds in a ProblemSpec
+	// Return false if any collision or out of bounds else True
 	public static boolean checkStraightPath(Line2D line, ProblemSpec problem) {
 		if (hitObject(problem, line) || outofbounds(line) ) {
 			return false;
@@ -93,6 +173,8 @@ public class a1 {
 		return true;
 	}
 	
+	// Returns the moves required to move from start to end ArmConfig
+	// Return in long variable.
 	public static long maxMoves(ArmConfig start, ArmConfig end) {
 		
 		long steps = 0;
@@ -115,6 +197,10 @@ public class a1 {
 		return steps + 1;
 	}
 	
+	// Returns a List of double of angle change for each link within a certain amount of moves
+	// This function assumes that the moves will allow the function to give a radian less max angle change
+	// Each double is the angle change in Radian
+	// This will cater for change from start to end ArmConfig
 	public static List<Double> angleChange(ArmConfig start, ArmConfig end, long moves) {
 		
 		//System.out.println(moves + " used");
@@ -134,6 +220,7 @@ public class a1 {
 		return change;
 	}
 	
+	// Adds path of move from start to end ArmConfig to problem spec and returns it
 	public static ProblemSpec armMove(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		ArmConfig current = start;
 		Point2D nextPoint;
@@ -176,20 +263,21 @@ public class a1 {
 		return problem;
 	}
 	
+	// Random Sample possible armconfig in problem space x amounts of time
+	// This function returns a List of ArmConfig of size x
 	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
 		
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
 		for (int i = 0; i < x; i++) {
-			answer.add(randomArmCopy(problem));
-			//answer.add(randomArm(problem));
+			answer.add(randomArm(problem));
+			//answer.add(randomArmCopy(problem));
 		}
 		return answer;
 		
 	}
 	
-	
+	// Returns a random single ArmConfig
 	public static ArmConfig randomArm(ProblemSpec problem) {
-		
 		
 		Point2D base = new Point2D.Double(Math.random(), Math.random());
 		List<Double> links = new ArrayList<Double>();
@@ -204,6 +292,7 @@ public class a1 {
 		return answer;
 	}
 	
+	/*
 	public static ArmConfig randomArmCopy(ProblemSpec problem) {
 		
 		ArmConfig copy = problem.getPath().get(problem.getPath().size());
@@ -216,12 +305,9 @@ public class a1 {
 		}
 		return answer;
 	}
+	*/
 	
-	public static void fold() {
-		
-	}
-	
-	
+	// Return the radian of angle between 2 points
 	public static double GetRadianOfLineBetweenTwoPoints(Point2D p1, Point2D p2) {
 		double xDiff = p2.getX() - p1.getX();
 		double yDiff = p2.getY() - p1.getY();
@@ -229,40 +315,8 @@ public class a1 {
 		return Math.atan2(yDiff, xDiff);
 	} 
 	
-	public static void aStarSearch(ProblemSpec problem){
-		
-		// Change to whichever Heuristic
-		Heuristic h = new ZeroHeuristic();
-		
-		List<ArmConfig> closedSet = new ArrayList<ArmConfig>();
-		List<ArmConfig> openSet = new ArrayList<ArmConfig>();
-		List<ArmConfig> currentPath = new ArrayList<ArmConfig>();
-		List<ArmConfig> finalPath = new ArrayList<ArmConfig>();
-		ArmConfig currentArm = problem.getInitialState();
-		Double currentCost = new Double("0");
-		Double inf = Double.POSITIVE_INFINITY;
-		boolean found = false;
-		
-		openSet.add(problem.getInitialState());
-		
-		while(!found) {
-			if (currentArm.equals(problem.getGoalState())) {
-				// change answer to finalPath
-				found = true;
-				problem.setPath(finalPath);
-			} else {
-				//Search
-				
-			}
-		}
-		
-		//While openset is not empty
-		//	current = node in openset that has the lowest total score
-		//	if current = goal
-		
-	}
-	
-	// Check if next move has collided with objects in problem spec
+	// Check if next move has collided with objects within the problem spec
+	// Return true if object is hit,  else Return False
 	public static boolean hitObject(ProblemSpec problem, ArmConfig nextMove){
 		
 		List<Obstacle> objectList = problem.getObstacles();
@@ -276,7 +330,8 @@ public class a1 {
 		return false;
 	}
 	
-	// Check if next move has collided with objects in problem spec
+	// Check if Line has collided with objects in problem spec
+	// Return true if object is hit,  else Return False
 	public static boolean hitObject(ProblemSpec problem, Line2D line){
 		
 		List<Obstacle> objectList = problem.getObstacles();
@@ -289,6 +344,8 @@ public class a1 {
 		return false;
 	}
 	
+	// Check if move has exit the bounds of 1,1
+	// Return true if object is hit,  else Return False
 	 public static boolean outofbounds(ArmConfig move) {
 		 List<Line2D> lines = move.getLinks();
 			int i = 0;
@@ -307,6 +364,8 @@ public class a1 {
 		return false;
 	 }
 	
+	// Check if Line has exit the bounds of 1,1
+	// Return true if object is hit,  else Return False
 	 public static boolean outofbounds(Line2D line) {
 		 	// Doesn't check for if Line is completely out of bounds
 		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
@@ -330,6 +389,7 @@ public class a1 {
 		 	return false;
 	 }
 	 
+	 // Return boolean value of if line is within rect
 	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect) {
 		 	
 		 	Point2D.Double p1 = new Point2D.Double(line.getX1(), line.getY1());
@@ -345,7 +405,7 @@ public class a1 {
 	 }
 	 
 	 
-
+	// Return boolean value of if line(l1p1 + l1p2) is intersect with another line(l2p1 + l2p2)
 	 private static boolean LineIntersectsLine(Point2D l1p1, Point2D l1p2, Point2D l2p1, Point2D l2p2){
 	 
 		 double q = (l1p1.getY() - l2p1.getY()) * (l2p2.getX() - l2p1.getX()) - (l1p1.getX() - l2p1.getX()) * (l2p2.getY() - l2p1.getY());
@@ -366,7 +426,9 @@ public class a1 {
 		 return true;
 	 }
 	 
-	public static boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
+	 // Checks if a current ArmConfig can move to another ArmConfig in a problem spec
+	 // Return True if move is valid, else Return false;
+	 public static boolean canMoveArm(ArmConfig current, ArmConfig move, ProblemSpec problem) {
 		
 		List<Double> clinks = current.getJointAngles();
 		List<Double> mlinks = move.getJointAngles();

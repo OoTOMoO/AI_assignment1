@@ -27,10 +27,6 @@ public class Heuristic2 implements Heuristic {
 	double inf = Double.POSITIVE_INFINITY;
 	
 	@Override
-	public double estimate(State s) {
-		return 0;
-	}
-	
 	public double estimate(ArmConfig move, ArmConfig end) {
 		return move.maxDistance(end);
 	}
