@@ -17,7 +17,7 @@ public class a1 {
 
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		
-		List<Integer> t1 = new ArrayList<Integer>();
+
 		List<ArmConfig> bpath = new ArrayList<ArmConfig>();
 		ArmConfig current;
 		ArmConfig currentDestination;
@@ -30,6 +30,9 @@ public class a1 {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
+		int size = 300;
+		
+		System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
 		
 		ProblemSpec test = new ProblemSpec();
 		
@@ -42,11 +45,12 @@ public class a1 {
 			//testFunc.moveTest(test);
 			
 			//Check if direct path is available
-			if (checkStraightPath(test.getInitialState(), test.getGoalState(), test)) {
-				System.err.println("here");
+			
+			if (completePathCheck(test.getInitialState(), test.getGoalState(), test)) {
+				System.err.println("Straight Path found");
 				test = armMove(test.getInitialState(), test.getGoalState(), test);
 			} else {
-				bpath = aStarSearch(test);
+				bpath = aStarSearch(test, size);
 				for (int i = bpath.size()-1; i > 0; i--) {
 					current = bpath.get(i);
 					currentDestination = bpath.get(i-1);
@@ -54,11 +58,7 @@ public class a1 {
 					test = armMove(current, currentDestination, test);
 				}
 			}
-			// else Sample
 			
-			
-			//Search
-			//aStarSearch(test);
 			
 			test.saveSolution(args[1]);
 		} catch (IOException e) {
@@ -78,14 +78,14 @@ public class a1 {
 	}
 	
 	// A* Search algorithm
-	public static List<ArmConfig> aStarSearch(ProblemSpec problem){
+	public static List<ArmConfig> aStarSearch(ProblemSpec problem, int size){
 		
 		
 		// Change to whichever Heuristic
 		Heuristic h = new Heuristic2();
 		
 		// Sample nodes
-		List<ArmConfig> samples = randomSample(problem, 1000);
+		List<ArmConfig> samples = randomSample(problem, size);
 		
 		MapOfNodes nodes = new MapOfNodes(sampleNodes(samples, problem, h));
 		
@@ -157,7 +157,8 @@ public class a1 {
 		for (int x = 0 ; x < list.size() ; x++) {
 			int y = x;
 			while (y<list.size()) { 
-				if (checkStraightPath(list.get(x).getArm(), list.get(y).getArm(), p)) {
+				if (completePathCheck(list.get(x).getArm(), list.get(y).getArm(), p)) {
+				//if (checkStraightPath(list.get(x).getArm(), list.get(y).getArm(), p)) {
 					list.get(x).addPath(list.get(y));
 					list.get(y).addPath(list.get(x));
 				}
@@ -186,6 +187,40 @@ public class a1 {
 			if (!checkStraightPath(current, problem)) return false;
 		}
 		
+		return true;
+	}
+	
+	//
+	public static boolean completePathCheck(ArmConfig start, ArmConfig end, ProblemSpec problem) {
+		ArmConfig current = start;
+		Point2D nextPoint;
+		ArmConfig nextArm;
+		Double max = new Double("0.001");
+		List<ArmConfig> path = problem.getPath();
+		if (path == null) path = new ArrayList<ArmConfig>();
+		double r = GetRadianOfLineBetweenTwoPoints(start.getBase(), end.getBase());
+		long moves = maxMoves(start, end);
+		List<Double> angleChange = angleChange(start, end, moves);
+		Double speed = start.getBase().distance(end.getBase())/(moves);
+		List<Double> newLinks;
+		path.add(current);
+		for (long i = 0; i < moves; i++) {
+			nextPoint = new Point2D.Double(current.getBase().getX() + (Math.cos(r)*speed), current.getBase().getY() + (Math.sin(r)*speed)); 
+			newLinks = new ArrayList<Double>();
+			for (int y = 0; y < angleChange.size();y++) {
+				newLinks.add(current.getJointAngles().get(y) + angleChange.get(y));
+			}	
+			current = new ArmConfig(nextPoint, newLinks);
+			path.add(current);
+		}
+		
+		for (ArmConfig arm : path) {
+			if (!validArm(arm, problem)) {
+				// System.err.println("R false");
+				return false;
+			}
+		}
+		// System.err.println("R true");
 		return true;
 	}
 	
@@ -292,9 +327,15 @@ public class a1 {
 	// This function returns a List of ArmConfig of size x
 	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
 		
+		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
-		for (int i = 0; i < x; i++) {
-			answer.add(randomArm(problem));
+		while (answer.size() < x) {
+		System.err.println("Current sample: " + answer.size());
+		//for (int i = 0; i < x; i++) {
+			current = randomArm(problem);
+			if (validArm(current, problem)) {
+				answer.add(current);
+			} 
 			//answer.add(randomArmCopy(problem));
 		}
 		return answer;
@@ -459,7 +500,6 @@ public class a1 {
 		List<Double> mlinks = move.getJointAngles();
 		List<Line2D> links = move.getLinks();
 		Double angleDiff;
-		int y = 0;
 		
 		if (current.getBase().distance(move.getBase()) > new Double("0.001")) {
 			System.err.println("Distance check");
@@ -478,13 +518,13 @@ public class a1 {
 		}
 		
 		if (hitObject(problem, move) || outofbounds(move)) {
-			System.err.println("collision check");
+			//System.err.println("collision check");
 			return false;
 		}
-		// check arms overlap
-		/*for (Line2D l : links) {
-			for (int z = 1 ; )
-		}*/
+
+		if (selfIntersect(move)) {
+			return false;
+		}
 
 		// Check for -150 and 150
 		for (Double d : move.getJointAngles()) {
@@ -497,16 +537,59 @@ public class a1 {
 		return true;
 	}
 	
-	
-	/*
-	public boolean outOfbounds(ArmConfig x) {
-		List<Line2D> lines = x.getLinks();
-		for (Line2D l : lines) {
-			l.
-		}
-		List<Point2D> points = line
+	 public static boolean validArm(ArmConfig move, ProblemSpec problem) {
+			
+		 
+			if (hitObject(problem, move) || outofbounds(move)) {
+				//System.err.println("collision check");
+				return false;
+			}
+			
+
+			// Check for -150 and 150
+			for (Double d : move.getJointAngles()) {
+				if (d > radianLimit || d < (radianLimit * -1)) {
+					System.err.println("angle limit check");
+					return false;
+				}
+			}
+			
+			if (selfIntersect(move)) {
+				return false;
+			}
 		
-	} */	
+			return true;
+		}
+	
+	 public static boolean selfIntersect(ArmConfig arm) {
+		 
+		 List<Line2D> links = arm.getLinks();
+		 
+			// check arms overlap
+			for (int x = 0 ; x < links.size(); x++) {
+				for (int y = x ; y < links.size() ; y++) {
+					if (!((y == x + 1) || (y == x - 1)) ){
+						//if (links.get(x).intersectsLine(links.get(y))) {
+						if (LineIntersectsLine(links.get(x).getP1(), links.get(x).getP2(), links.get(y).getP1(), links.get(y).getP2())) {
+							return true;
+						}
+					}
+				}
+			}
+			
+//			for (Line2D l1 : links) {
+//				for (Line2D l2 : links) {
+//					if(!l1.equals(l2)) {
+//						if(l1.intersectsLine(l2)) {
+//							return true;
+//						}
+//					}
+//				}
+//			}
+		 
+		 return false;
+		 
+	 }
 	
 
 }
