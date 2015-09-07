@@ -30,9 +30,9 @@ public class a1 {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		int size = 300;
+		int size = 100;
 		
-		System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
+		//System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
 		
 		ProblemSpec test = new ProblemSpec();
 		
@@ -50,16 +50,18 @@ public class a1 {
 				System.err.println("Straight Path found");
 				test = armMove(test.getInitialState(), test.getGoalState(), test);
 			} else {
-				bpath = aStarSearch(test, size);
+				while(bpath.isEmpty()) {
+					bpath = aStarSearch(test, size);
+					size = size + 100;
+				}
 				for (int i = bpath.size()-1; i > 0; i--) {
 					current = bpath.get(i);
 					currentDestination = bpath.get(i-1);
-					System.err.println("Go " + current.toString() + " to " + currentDestination.toString());
+					//System.err.println("Go " + current.toString() + " to " + currentDestination.toString());
 					test = armMove(current, currentDestination, test);
 				}
 			}
-			
-			
+			System.err.println("Path found");
 			test.saveSolution(args[1]);
 		} catch (IOException e) {
 			System.err.println(e);
@@ -79,7 +81,6 @@ public class a1 {
 	
 	// A* Search algorithm
 	public static List<ArmConfig> aStarSearch(ProblemSpec problem, int size){
-		
 		
 		// Change to whichever Heuristic
 		Heuristic h = new Heuristic2();
@@ -133,7 +134,7 @@ public class a1 {
 		
 		if (path.isEmpty()) System.err.println("Can't find path");
 		
-		for (ArmConfig a : path) System.err.println(a.toString());
+		//for (ArmConfig a : path) System.err.println(a.toString());
 		
 		return path;
 	
@@ -172,7 +173,6 @@ public class a1 {
 	// Check if path between start ArmConfig and end ArmConfig within the selected ProblemSpec
 	// 	Return true if straight path is available
 	// 	Return false if can't go straight
-	// NEEDS FIX (CHECK IF WORKS)
 	public static boolean checkStraightPath(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		
 		int links = problem.getJointCount();
@@ -194,8 +194,6 @@ public class a1 {
 	public static boolean completePathCheck(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		ArmConfig current = start;
 		Point2D nextPoint;
-		ArmConfig nextArm;
-		Double max = new Double("0.001");
 		List<ArmConfig> path = problem.getPath();
 		if (path == null) path = new ArrayList<ArmConfig>();
 		double r = GetRadianOfLineBetweenTwoPoints(start.getBase(), end.getBase());
@@ -204,6 +202,10 @@ public class a1 {
 		Double speed = start.getBase().distance(end.getBase())/(moves);
 		List<Double> newLinks;
 		path.add(current);
+		Line2D test = new Line2D.Double(start.getBase(), end.getBase());
+		if (!checkStraightPath(test, problem)) {
+			return false;
+		}
 		for (long i = 0; i < moves; i++) {
 			nextPoint = new Point2D.Double(current.getBase().getX() + (Math.cos(r)*speed), current.getBase().getY() + (Math.sin(r)*speed)); 
 			newLinks = new ArrayList<Double>();
@@ -327,10 +329,12 @@ public class a1 {
 	// This function returns a List of ArmConfig of size x
 	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
 		
+		System.err.println("Sample size: " + x);
+		
 		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
 		while (answer.size() < x) {
-		System.err.println("Current sample: " + answer.size());
+		//System.err.println("Current sample: " + answer.size());
 		//for (int i = 0; i < x; i++) {
 			current = randomArm(problem);
 			if (validArm(current, problem)) {
@@ -338,8 +342,8 @@ public class a1 {
 			} 
 			//answer.add(randomArmCopy(problem));
 		}
-		return answer;
 		
+		return answer;
 	}
 	
 	// Returns a random single ArmConfig
