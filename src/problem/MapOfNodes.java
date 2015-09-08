@@ -1,6 +1,6 @@
 package problem;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.List;
 
 import problem.ArmConfig;
@@ -13,7 +13,7 @@ public class MapOfNodes {
 
 	public MapOfNodes(List<Node> nodes) {
 		this.nodes = nodes;
-		this.current = current;
+		//this.current = current;
 	}
 	
 	public Node getNode(Node n) {

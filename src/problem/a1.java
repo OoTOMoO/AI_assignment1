@@ -1,6 +1,6 @@
 package problem;
 
-import java.io.FileWriter;
+//import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,7 +178,7 @@ public class a1 {
 		int links = problem.getJointCount();
 		List<Line2D> startPoints = start.getLinks();
 		List<Line2D> endPoints = end.getLinks();
-		List<Line2D> straightPath = new ArrayList<Line2D>();
+		//List<Line2D> straightPath = new ArrayList<Line2D>();
 		Line2D current;
 		
 		for (int i = 1; i < links ; i++) {
@@ -286,8 +286,8 @@ public class a1 {
 	public static ProblemSpec armMove(ArmConfig start, ArmConfig end, ProblemSpec problem) {
 		ArmConfig current = start;
 		Point2D nextPoint;
-		ArmConfig nextArm;
-		Double max = new Double("0.001");
+		//ArmConfig nextArm;
+		//Double max = new Double("0.001");
 		List<ArmConfig> path = problem.getPath();
 		if (path == null) path = new ArrayList<ArmConfig>();
 		double r = GetRadianOfLineBetweenTwoPoints(start.getBase(), end.getBase());
@@ -329,7 +329,8 @@ public class a1 {
 	// This function returns a List of ArmConfig of size x
 	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
 		
-		System.err.println("Sample size: " + x);
+		
+		int y = x;
 		
 		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
@@ -342,6 +343,8 @@ public class a1 {
 			} 
 			//answer.add(randomArmCopy(problem));
 		}
+		
+		System.err.println("Sample size: " + y);
 		
 		return answer;
 	}
@@ -356,6 +359,21 @@ public class a1 {
 		}
 		
 		ArmConfig answer = new ArmConfig(base, links);
+		if (outofbounds(answer) || hitObject(problem, answer)) {
+			answer = randomArm(problem);
+		}
+		return answer;
+	}
+	
+	// Return random arm at a particular point
+	public static ArmConfig randomArm(ProblemSpec problem, Point2D point) {
+		
+		List<Double> links = new ArrayList<Double>();
+		for (int i = 0; i < problem.getJointCount(); i++) {
+			links.add((Math.random() * 2 * radianLimit) - radianLimit);
+		}
+		
+		ArmConfig answer = new ArmConfig(point, links);
 		if (outofbounds(answer) || hitObject(problem, answer)) {
 			answer = randomArm(problem);
 		}
@@ -389,7 +407,7 @@ public class a1 {
 	// Return true if object is hit,  else Return False
 	public static boolean hitObject(ProblemSpec problem, ArmConfig nextMove){
 		
-		List<Obstacle> objectList = problem.getObstacles();
+		//List<Obstacle> objectList = problem.getObstacles();
 		List<Line2D> lineList = nextMove.getLinks();
 		for (Line2D l : lineList) {
 			if (hitObject(problem, l)) {
@@ -418,7 +436,7 @@ public class a1 {
 	// Return true if object is hit,  else Return False
 	 public static boolean outofbounds(ArmConfig move) {
 		 List<Line2D> lines = move.getLinks();
-			int i = 0;
+			//int i = 0;
 			for (Line2D line : lines) {
 				if (outofbounds(line)) {
 					return true;
@@ -429,7 +447,7 @@ public class a1 {
 						return true;
 					}
 				} */
-				i++;
+				//i++;
 			}
 		return false;
 	 }
@@ -502,7 +520,7 @@ public class a1 {
 		
 		List<Double> clinks = current.getJointAngles();
 		List<Double> mlinks = move.getJointAngles();
-		List<Line2D> links = move.getLinks();
+		//List<Line2D> links = move.getLinks();
 		Double angleDiff;
 		
 		if (current.getBase().distance(move.getBase()) > new Double("0.001")) {
