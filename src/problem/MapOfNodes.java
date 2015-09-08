@@ -58,6 +58,7 @@ public class MapOfNodes {
 		}
 		
 		this.nodes = answer;
+		System.out.println("New samples added");
 		
 	}
 	

@@ -61,6 +61,9 @@ public class a1 {
 			} else {
 				while (bpath.isEmpty()){
 					bpath = aStarSearch(test, size);
+//					if (!bpath.isEmpty()) {
+//						bpath = finalCheck(bpath);
+//					}
 				}
 				for (int i = bpath.size()-1; i > 0; i--) {
 					current = bpath.get(i);
@@ -88,6 +91,11 @@ public class a1 {
 		
 
 
+	}
+	
+	// A* Search algorithm
+	public static List<ArmConfig> finalCheck(List<ArmConfig> a){
+		return a;
 	}
 	
 	// A* Search algorithm
@@ -406,7 +414,8 @@ public class a1 {
 			//answer.add(randomArmCopy(problem));
 		}
 		
-		System.err.println("Started Sample size: " + answer.size());
+		
+		//System.err.println("Started Sample size: " + answer.size());
 		
 		// Sample around obs
 		List<Point2D> points = new ArrayList<Point2D>();
@@ -460,7 +469,7 @@ public class a1 {
 			//}
 			
 		}
-		System.err.println("size " + points.size());
+		//System.err.println("size " + points.size());
 		
 		int limit;
 		int ulimit = 0;
@@ -479,7 +488,7 @@ public class a1 {
 			}
 		}
 
-		System.err.println("Ended Sample size: " + answer.size());
+		//System.err.println("Ended Sample size: " + answer.size());
 		
 		//for (ArmConfig a : answer) System.out.println(a.toString());
 		
