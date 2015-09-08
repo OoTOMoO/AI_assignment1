@@ -3,10 +3,12 @@ package problem;
 //import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.awt.geom.*;
 import java.lang.Double;
-
+import java.sql.Timestamp;
+import java.util.Date;
 
 public class a1 {
 	
@@ -14,6 +16,7 @@ public class a1 {
 	static double maxAngleChange = new Double("0.00174532925");
 	
 	public static void main(String args[]) throws IOException {
+		
 
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		
@@ -36,7 +39,7 @@ public class a1 {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		int size = 50;
+		int size = 3;
 		
 		//System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
 		
@@ -58,7 +61,7 @@ public class a1 {
 			} else {
 				while(bpath.isEmpty()) {
 					bpath = aStarSearch(test, size);
-					size = size + 100;
+					size++;
 				}
 				for (int i = bpath.size()-1; i > 0; i--) {
 					current = bpath.get(i);
@@ -72,6 +75,9 @@ public class a1 {
 		} catch (IOException e) {
 			System.err.println(e);
 		}
+		
+		Date date= new java.util.Date();
+		System.out.println(new Timestamp(date.getTime()));
 		
 		// Finish
 		try {
@@ -164,7 +170,7 @@ public class a1 {
 		for (int x = 0 ; x < list.size() ; x++) {
 			int y = x;
 			while (y<list.size()) { 
-				if (completePathCheck(list.get(x).getArm(), list.get(y).getArm(), p)) {
+				if (tenPathCheck(list.get(x).getArm(), list.get(y).getArm(), p)) {
 				//if (checkStraightPath(list.get(x).getArm(), list.get(y).getArm(), p)) {
 					list.get(x).addPath(list.get(y));
 					list.get(y).addPath(list.get(x));
@@ -223,6 +229,44 @@ public class a1 {
 		}
 		
 		for (ArmConfig arm : path) {
+			if (!validArm(arm, problem)) {
+				// System.err.println("R false");
+				return false;
+			}
+		}
+		// System.err.println("R true");
+		return true;
+	}
+	
+	public static boolean tenPathCheck(ArmConfig start, ArmConfig end, ProblemSpec problem) {
+		ArmConfig current = start;
+		Point2D nextPoint;
+		List<ArmConfig> path = problem.getPath();
+		if (path == null) path = new ArrayList<ArmConfig>();
+		double r = GetRadianOfLineBetweenTwoPoints(start.getBase(), end.getBase());
+		long moves = maxMoves(start, end);
+		List<Double> angleChange = angleChange(start, end, moves);
+		Double speed = start.getBase().distance(end.getBase())/(moves);
+		List<Double> newLinks;
+		path.add(current);
+		Line2D test = new Line2D.Double(start.getBase(), end.getBase());
+		if (!checkStraightPath(test, problem)) {
+			return false;
+		}
+		for (long i = 0; i < moves; i++) {
+			nextPoint = new Point2D.Double(current.getBase().getX() + (Math.cos(r)*speed), current.getBase().getY() + (Math.sin(r)*speed)); 
+			newLinks = new ArrayList<Double>();
+			for (int y = 0; y < angleChange.size();y++) {
+				newLinks.add(current.getJointAngles().get(y) + angleChange.get(y));
+			}	
+			current = new ArmConfig(nextPoint, newLinks);
+			path.add(current);
+		}
+		
+		
+		for (int y = 0 ; y < path.size() ; y=y+5) {
+		//for (ArmConfig arm : path) {
+			ArmConfig arm = path.get(y);
 			if (!validArm(arm, problem)) {
 				// System.err.println("R false");
 				return false;
@@ -337,7 +381,7 @@ public class a1 {
 		
 		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
-		while (answer.size() < x) {
+		while (answer.size() < x*20) {
 		//System.err.println("Current sample: " + answer.size());
 		//for (int i = 0; i < x; i++) {
 			current = randomArm(problem);
@@ -354,46 +398,66 @@ public class a1 {
 		List<Obstacle> obs = problem.getObstacles();
 		
 		for (Obstacle o : obs) {
-
-			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY()));
-			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() - 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() - 0.01));
 			
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY() - 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY()));
+			for (int z = 1 ; z < x+2 ; z++) {
+			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY()));
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() - 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() - 0.02*z)); // Corner
 			
-			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() + o.getRect().getHeight() + 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY() - 0.01)); // Corner
 			
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.01, o.getRect().getY() + o.getRect().getHeight()));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.01));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY() + o.getRect().getHeight() + 0.01));
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() + o.getRect().getHeight() + 0.01)); // Corner
+			
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.02*z, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY() + o.getRect().getHeight() + 0.02*z)); // Corner
+			
+			points.add(new Point2D.Double(o.getRect().getX() + 0.02*z, o.getRect().getY() + o.getRect().getHeight()/2));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() - 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
+			points.add(new Point2D.Double(o.getRect().getX()  + o.getRect().getWidth() + 0.02*z, o.getRect().getY() + o.getRect().getHeight()/2));
+			}
+			
+			Point2D lcurrent;
+			List<Line2D> lines = new ArrayList<Line2D>();
+			Point2D bl = new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() - 0.02);
+			Point2D br = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02, o.getRect().getY() - 0.02);
+			Point2D tl = new Point2D.Double(o.getRect().getX() - 0.02, o.getRect().getY() + o.getRect().getHeight() + 0.02);
+			Point2D tr = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02, o.getRect().getY() + o.getRect().getHeight() + 0.02);
+			
+			lines.add(new Line2D.Double(bl, br));
+			lines.add(new Line2D.Double(bl, tl));
+			lines.add(new Line2D.Double(tl, tr));
+			lines.add(new Line2D.Double(br, tr));
+			for (Line2D l : lines) {
+				for (Iterator<Point2D> it = new LineIterator(l); it.hasNext();) {
+				    lcurrent = it.next();
+				    Double d = Math.random();
+				    if (d < 0.1 + 0.05*x) {
+				    	points.add(lcurrent);
+				    }
+				}
+			}
 			
 		}
+		System.err.println("size " + points.size());
 		
-		boolean b;
 		int limit;
-		int ulimit;
 		for (Point2D p : points) {
-			//System.out.println(p.toString());
 			if (checkPoint(problem, p)) { 
-				//System.out.println("Finding");
 				limit = 0;
-				ulimit = 0;
-				while (limit < (5+(x/50)) && ulimit < 100) {
-					ulimit++;
-					//System.out.println(current);
+				while (limit < 1) {
 					current = randomArm(problem, p);
 					if (validArm(current, problem)) {
 						answer.add(current);
 						limit++;
 					} 
-					//System.out.println(current.toString());
 				}
 			}
-			
 		}
 
 		System.err.println("Ended Sample size: " + answer.size());
