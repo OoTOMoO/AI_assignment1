@@ -18,6 +18,12 @@ public class a1 {
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		
 
+//		Rectangle2D r = new Rectangle2D.Double(0, 0, 1, 1);
+//		Point2D p = new Point2D.Double(0, 0);
+//		if (r.contains(p)) {
+//			System.out.println("works"); 
+//		}
+		
 		List<ArmConfig> bpath = new ArrayList<ArmConfig>();
 		ArmConfig current;
 		ArmConfig currentDestination;
@@ -30,7 +36,7 @@ public class a1 {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		int size = 100;
+		int size = 50;
 		
 		//System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
 		
@@ -329,9 +335,6 @@ public class a1 {
 	// This function returns a List of ArmConfig of size x
 	public static List<ArmConfig> randomSample(ProblemSpec problem, int x) {
 		
-		
-		int y = x;
-		
 		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
 		while (answer.size() < x) {
@@ -340,11 +343,63 @@ public class a1 {
 			current = randomArm(problem);
 			if (validArm(current, problem)) {
 				answer.add(current);
-			} 
+			}
 			//answer.add(randomArmCopy(problem));
 		}
 		
-		System.err.println("Sample size: " + y);
+		System.err.println("Started Sample size: " + answer.size());
+		
+		// Sample around obs
+		List<Point2D> points = new ArrayList<Point2D>();
+		List<Obstacle> obs = problem.getObstacles();
+		
+		for (Obstacle o : obs) {
+
+			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY()));
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() - 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() - 0.01));
+			
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY() - 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY()));
+			
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() + o.getRect().getHeight() + 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() + o.getRect().getHeight()));
+			
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.01, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.01));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.01, o.getRect().getY() + o.getRect().getHeight() + 0.01));
+			
+		}
+		
+		boolean b;
+		int limit;
+		int ulimit;
+		for (Point2D p : points) {
+			//System.out.println(p.toString());
+			if (checkPoint(problem, p)) { 
+				//System.out.println("Finding");
+				limit = 0;
+				ulimit = 0;
+				while (limit < (5+(x/50)) && ulimit < 100) {
+					ulimit++;
+					//System.out.println(current);
+					current = randomArm(problem, p);
+					if (validArm(current, problem)) {
+						answer.add(current);
+						limit++;
+					} 
+					//System.out.println(current.toString());
+				}
+			}
+			
+		}
+
+		System.err.println("Ended Sample size: " + answer.size());
+		
+		//for (ArmConfig a : answer) System.out.println(a.toString());
+		
 		
 		return answer;
 	}
@@ -359,9 +414,6 @@ public class a1 {
 		}
 		
 		ArmConfig answer = new ArmConfig(base, links);
-		if (outofbounds(answer) || hitObject(problem, answer)) {
-			answer = randomArm(problem);
-		}
 		return answer;
 	}
 	
@@ -374,9 +426,6 @@ public class a1 {
 		}
 		
 		ArmConfig answer = new ArmConfig(point, links);
-		if (outofbounds(answer) || hitObject(problem, answer)) {
-			answer = randomArm(problem);
-		}
 		return answer;
 	}
 	
@@ -472,11 +521,15 @@ public class a1 {
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY()), new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight())) ||
 	               LineIntersectsLine(p1, p2, new Point2D.Double(rect.getX(), rect.getY() + rect.getHeight()), new Point2D.Double(rect.getX(), rect.getY()))
-	               )  { System.err.println("Out of bounds: midway out of bounds"); return true; }
+	               )  {
+		 		//System.err.println("Out of bounds: midway out of bounds"); 
+		 		return true; 
+		 		}
 		 	
 		 	return false;
 	 }
 	 
+
 	 // Return boolean value of if line is within rect
 	 public static boolean LineIntersectsRect(Line2D line, Rectangle2D rect) {
 		 	
@@ -538,36 +591,23 @@ public class a1 {
 				return false;
 			}
 		}
-		
-		if (hitObject(problem, move) || outofbounds(move)) {
-			//System.err.println("collision check");
-			return false;
-		}
-
-		if (selfIntersect(move)) {
-			return false;
-		}
-
-		// Check for -150 and 150
-		for (Double d : move.getJointAngles()) {
-			if (d > radianLimit || d < (radianLimit * -1)) {
-				System.err.println("angle limit check");
-				return false;
-			}
-		}
 	
-		return true;
+		return validArm(move, problem);
 	}
+	 
 	
 	 public static boolean validArm(ArmConfig move, ProblemSpec problem) {
 			
-		 
-			if (hitObject(problem, move) || outofbounds(move)) {
-				//System.err.println("collision check");
+			if (hitObject(problem, move)) {
+				//System.err.println("Collision detected");
 				return false;
 			}
 			
-
+			if (outofbounds(move)) {
+				//System.err.println("OB detected");
+				return false;
+			}
+			
 			// Check for -150 and 150
 			for (Double d : move.getJointAngles()) {
 				if (d > radianLimit || d < (radianLimit * -1)) {
@@ -582,6 +622,24 @@ public class a1 {
 		
 			return true;
 		}
+	 
+//	 public static boolean validArm(ArmConfig move, ProblemSpec problem) {
+//		 
+//			if (hitObject(problem, move)) {
+//				//System.err.println("Collision detected");
+//				return false;
+//			}
+//			if (outofbounds(move)) {
+//				//System.err.println("OB detected");
+//				return false;
+//			}
+//			if (selfIntersect(move)) {
+//				return false;
+//			}
+//		
+//			return true;
+//			
+//	 }
 	
 	 public static boolean selfIntersect(ArmConfig arm) {
 		 
@@ -598,18 +656,24 @@ public class a1 {
 					}
 				}
 			}
-			
-//			for (Line2D l1 : links) {
-//				for (Line2D l2 : links) {
-//					if(!l1.equals(l2)) {
-//						if(l1.intersectsLine(l2)) {
-//							return true;
-//						}
-//					}
-//				}
-//			}
 		 
 		 return false;
+		 
+	 }
+	 
+	 public static boolean checkPoint(ProblemSpec problem, Point2D point) {
+		 
+		 if ( point.getX() <= 0 || point.getX() >= 1 || 
+				 point.getY() <= 0 || point.getY() >= 1) {
+			 return false;
+		 }
+		 
+		 
+		 for (Obstacle o : problem.getObstacles()) {
+			 if (o.getRect().contains(point)) return false;
+		 }
+		 
+		 return true;
 		 
 	 }
 	
