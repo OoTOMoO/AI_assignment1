@@ -39,7 +39,7 @@ public class a1 {
 			System.err.println("Invalid command line arguments\n");
 			System.exit(0);
 		}
-		int size = 3;
+		int size = 0;
 		
 		//System.out.println("Input: " + args[0] + " Output: " + args[1] + " Sample Size: " + size);
 		
@@ -59,9 +59,8 @@ public class a1 {
 				System.err.println("Straight Path found");
 				test = armMove(test.getInitialState(), test.getGoalState(), test);
 			} else {
-				while(bpath.isEmpty()) {
+				while (bpath.isEmpty()){
 					bpath = aStarSearch(test, size);
-					size++;
 				}
 				for (int i = bpath.size()-1; i > 0; i--) {
 					current = bpath.get(i);
@@ -94,22 +93,42 @@ public class a1 {
 	// A* Search algorithm
 	public static List<ArmConfig> aStarSearch(ProblemSpec problem, int size){
 		
+		
+		int variable = size;
 		// Change to whichever Heuristic
 		Heuristic h = new Heuristic2();
+		List<ArmConfig> path;
+		MapOfNodes nodes;
 		
-		// Sample nodes
-		List<ArmConfig> samples = randomSample(problem, size);
+		List<ArmConfig> samples = randomSample(problem, variable);
+		nodes = new MapOfNodes(sampleNodes(samples, problem, h));
+		path = aStarSearch(problem, variable, nodes);
+		//for (ArmConfig a : path) System.out.println(a.toString());
+		while(path.isEmpty()) {
+			variable++;
+			System.out.println("Failed, adding samples ... currently " + nodes.nodes.size());
+			nodes.addSample(randomSample(problem, variable), problem, h);
+			nodes.nodes.size();
+			path = aStarSearch(problem, variable, nodes);
+		}
+
 		
-		MapOfNodes nodes = new MapOfNodes(sampleNodes(samples, problem, h));
+		//for (ArmConfig a : path) System.err.println(a.toString());
 		
-		// Init List and add start node to open list
+		return path;
+	
+		//nodes.getNode(current)
+		
+	}
+	
+	public static List<ArmConfig> aStarSearch(ProblemSpec problem, int size, MapOfNodes nodes){
+		
+		List<ArmConfig> path = new ArrayList<ArmConfig>();
 		List<ArmConfig> open = new ArrayList<ArmConfig>();
 		List<ArmConfig> close = new ArrayList<ArmConfig>();
 		open.add(problem.getInitialState());
 		ArmConfig current;
 		double cost;
-		List<ArmConfig> path = new ArrayList<ArmConfig>();
-		
 		while (!open.isEmpty()) {
 			// Get lowest g cost in open list
 			current = open.get(0);
@@ -144,13 +163,7 @@ public class a1 {
 			}
 		}
 		
-		if (path.isEmpty()) System.err.println("Can't find path");
-		
-		//for (ArmConfig a : path) System.err.println(a.toString());
-		
 		return path;
-	
-		//nodes.getNode(current)
 		
 	}
 	
@@ -167,10 +180,11 @@ public class a1 {
 			n = new Node(arm, 0, p, h);
 			list.add(n);
 		}
+		
 		for (int x = 0 ; x < list.size() ; x++) {
 			int y = x;
 			while (y<list.size()) { 
-				if (tenPathCheck(list.get(x).getArm(), list.get(y).getArm(), p)) {
+				if (completePathCheck(list.get(x).getArm(), list.get(y).getArm(), p)) {
 				//if (checkStraightPath(list.get(x).getArm(), list.get(y).getArm(), p)) {
 					list.get(x).addPath(list.get(y));
 					list.get(y).addPath(list.get(x));
@@ -180,6 +194,7 @@ public class a1 {
 		}
 		return list;
 	}
+	
 	
 	
 	// Check if path between start ArmConfig and end ArmConfig within the selected ProblemSpec
@@ -381,7 +396,7 @@ public class a1 {
 		
 		ArmConfig current;
 		List<ArmConfig> answer = new ArrayList<ArmConfig>();
-		while (answer.size() < x*20) {
+		while (answer.size() < 15) {
 		//System.err.println("Current sample: " + answer.size());
 		//for (int i = 0; i < x; i++) {
 			current = randomArm(problem);
@@ -398,36 +413,36 @@ public class a1 {
 		List<Obstacle> obs = problem.getObstacles();
 		
 		for (Obstacle o : obs) {
+			int z = x;
+			//for (int z = 1 ; z < x+1 ; z++) {
+			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY()));
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() - 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() - 0.005*z)); // Corner
 			
-			for (int z = 1 ; z < x+2 ; z++) {
-			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY()));
-			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() - 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() - 0.02*z)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() - 0.01)); // Corner
 			
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY()));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY() - 0.01)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.01)); // Corner
 			
-			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() + o.getRect().getHeight()));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.02*z, o.getRect().getY() + o.getRect().getHeight() + 0.01)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.005*z, o.getRect().getY() + o.getRect().getHeight()));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.005*z)); // Corner
 			
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.02*z, o.getRect().getY() + o.getRect().getHeight()));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02*z, o.getRect().getY() + o.getRect().getHeight() + 0.02*z)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX() + 0.005*z, o.getRect().getY() + o.getRect().getHeight()/2));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() - 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() + o.getRect().getHeight() + 0.005*z));
+			points.add(new Point2D.Double(o.getRect().getX()  + o.getRect().getWidth() + 0.005*z, o.getRect().getY() + o.getRect().getHeight()/2));
 			
-			points.add(new Point2D.Double(o.getRect().getX() + 0.02*z, o.getRect().getY() + o.getRect().getHeight()/2));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() - 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()/2, o.getRect().getY() + o.getRect().getHeight() + 0.02*z));
-			points.add(new Point2D.Double(o.getRect().getX()  + o.getRect().getWidth() + 0.02*z, o.getRect().getY() + o.getRect().getHeight()/2));
-			}
 			
 			Point2D lcurrent;
 			List<Line2D> lines = new ArrayList<Line2D>();
-			Point2D bl = new Point2D.Double(o.getRect().getX() - 0.01, o.getRect().getY() - 0.02);
-			Point2D br = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02, o.getRect().getY() - 0.02);
-			Point2D tl = new Point2D.Double(o.getRect().getX() - 0.02, o.getRect().getY() + o.getRect().getHeight() + 0.02);
-			Point2D tr = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.02, o.getRect().getY() + o.getRect().getHeight() + 0.02);
+			Point2D bl = new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() - 0.005*z);
+			Point2D br = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() - 0.005*z);
+			Point2D tl = new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.005*z);
+			Point2D tr = new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.005*z);
 			
 			lines.add(new Line2D.Double(bl, br));
 			lines.add(new Line2D.Double(bl, tl));
@@ -437,25 +452,29 @@ public class a1 {
 				for (Iterator<Point2D> it = new LineIterator(l); it.hasNext();) {
 				    lcurrent = it.next();
 				    Double d = Math.random();
-				    if (d < 0.1 + 0.05*x) {
+				    if (d < 0.05) {
 				    	points.add(lcurrent);
 				    }
 				}
 			}
+			//}
 			
 		}
 		System.err.println("size " + points.size());
 		
 		int limit;
+		int ulimit = 0;
 		for (Point2D p : points) {
 			if (checkPoint(problem, p)) { 
 				limit = 0;
-				while (limit < 1) {
+				ulimit = 0;
+				while (limit < 1 && ulimit < 10) {
 					current = randomArm(problem, p);
 					if (validArm(current, problem)) {
 						answer.add(current);
 						limit++;
 					} 
+					ulimit++;
 				}
 			}
 		}
