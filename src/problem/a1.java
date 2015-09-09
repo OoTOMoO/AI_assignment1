@@ -430,11 +430,11 @@ public class a1 {
 			
 			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() - 0.005*z));
 			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY()));
-			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() - 0.01)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth() + 0.005*z, o.getRect().getY() - 0.005*z)); // Corner
 			
 			points.add(new Point2D.Double(o.getRect().getX(), o.getRect().getY() + o.getRect().getHeight() + 0.005*z));
 			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight()));
-			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.01)); // Corner
+			points.add(new Point2D.Double(o.getRect().getX() - 0.005*z, o.getRect().getY() + o.getRect().getHeight() + 0.005*z)); // Corner
 			
 			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth()+ 0.005*z, o.getRect().getY() + o.getRect().getHeight()));
 			points.add(new Point2D.Double(o.getRect().getX() + o.getRect().getWidth(), o.getRect().getY() + o.getRect().getHeight() + 0.005*z));
@@ -475,9 +475,10 @@ public class a1 {
 		int ulimit = 0;
 		for (Point2D p : points) {
 			if (checkPoint(problem, p)) { 
+				//System.out.println(p.toString());
 				limit = 0;
 				ulimit = 0;
-				while (limit < 1 && ulimit < 10) {
+				while (limit < 1 && ulimit < 50) {
 					current = randomArm(problem, p);
 					if (validArm(current, problem)) {
 						answer.add(current);
@@ -755,14 +756,15 @@ public class a1 {
 	 
 	 public static boolean checkPoint(ProblemSpec problem, Point2D point) {
 		 
-		 if ( point.getX() <= 0 || point.getX() >= 1 || 
-				 point.getY() <= 0 || point.getY() >= 1) {
+		 if ( point.getX() <= 0 || point.getX() >= 1 || point.getY() <= 0 || point.getY() >= 1) {
 			 return false;
 		 }
 		 
 		 
 		 for (Obstacle o : problem.getObstacles()) {
-			 if (o.getRect().contains(point)) return false;
+			 if (o.getRect().contains(point) || point.equals(new Point2D.Double(o.getRect().getX(), o.getRect().getY()))) {
+				 return false;
+			 }
 		 }
 		 
 		 return true;
